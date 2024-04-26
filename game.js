@@ -23,9 +23,9 @@ class MainScene extends Phaser.Scene {
         this.load.image('car', 'miata.png');
         this.load.image('folder', 'folder.png');
         this.load.image('p', 'p-paper.png');
-        this.load.image('r', 'r-paper.png');
-        this.load.image('o', 'o-paper.png');
-        this.load.image('m', 'm-paper.png');
+        this.load.image('ra', 'r-paper.png');
+        this.load.image('oa', 'o-paper.png');
+        this.load.image('ma', 'm-paper.png');
         this.load.image('folderLocked', 'lock.png');
         this.load.image('carShadow', 'miataShadow.png');
     }
@@ -63,20 +63,20 @@ class MainScene extends Phaser.Scene {
 
                 
 
-        if (this.sys.game.global.puzzle1Completed) {
-            folder1.setTexture('p');
-            folder2.setTexture('folder');
-        }
-        if (this.sys.game.global.puzzle2completed) {
-            folder2.setTexture('r');
-            folder3.setTexture('folder');
-        } 
-        if (this.sys.game.global.puzzle3completed) {
-            folder3.setTexture('o');
-            folder4.setTexture('folder');
-        }
+        
+        
+        
         if (this.sys.game.global.puzzle4completed) {
             folder4.setTexture('m');
+        } else if (this.sys.game.global.puzzle3completed) {
+            folder3.setTexture('o');
+            folder4.setTexture('folder');
+        } else if (this.sys.game.global.puzzle2completed) {
+            folder2.setTexture('r');
+            folder3.setTexture('folder');
+        } else if (this.sys.game.global.puzzle1Completed) {
+            folder1.setTexture('p');
+            folder2.setTexture('folder');
         }
     
     }
@@ -353,6 +353,7 @@ class PuzzleScene2 extends Phaser.Scene {
                     } else if (event.keyCode === 13) {  // Enter key
                         if (inputText.text.toLowerCase() === 'pilestone') {
                             promptText.setText('Correct!');
+                            this.sys.game.global.puzzle1Completed = true;
                             this.sys.game.global.puzzle2Completed = true;
                         } else {
                             promptText.setText('Incorrect, try again.');
