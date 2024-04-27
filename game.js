@@ -65,7 +65,6 @@ class MainScene extends Phaser.Scene {
 
         
         
-        
         if (this.sys.game.global.puzzle4completed) {
             folder4.setTexture('m');
         } else if (this.sys.game.global.puzzle3completed) {
@@ -191,12 +190,14 @@ class PuzzleScene1 extends Phaser.Scene {
     }
 
     create() {
-        this.introText = this.add.text(200, 50, '', { font: '28px Courier', fill: '#ffffff' });
+        this.cameras.main.setBackgroundColor('#3eb489');
+
+        this.introText = this.add.text(200, 50, '', { font: '28px Courier', fill: '#000000' });
         this.typewriterText("Puzzle 1:", this.introText, 50).then(() => {
             this.createBinaryPuzzle();
         });
 
-        this.hint = this.add.text(200, 80, '', { font: '28px Courier', fill: '#ffffff' });
+        this.hint = this.add.text(200, 100, '', { font: '28px Courier', fill: '#000000' });
         this.typewriterText("62180137", this.hint, 50).then(() => {
             this.createBinaryPuzzle();
         });
@@ -243,7 +244,7 @@ class PuzzleScene1 extends Phaser.Scene {
             let xPos = 200; // Reset xPos for each row
             binaryRGB[color].split('').forEach((bit, index) => {
                 this.time.delayedCall(delay, () => {
-                    let boxColor = bit === '1' ? colors[color] : 0x000000;
+                    let boxColor = bit === '1' ? colors[color] : 0x3eb489;
                     let graphics = this.add.graphics({ fillStyle: { color: boxColor } });
                     graphics.fillRoundedRect(xPos, yPos, 40, 40, 8);
                     if (index === binaryRGB[color].length - 1 && row === Object.keys(binaryRGB).length - 1) {
@@ -264,9 +265,9 @@ class PuzzleScene1 extends Phaser.Scene {
 
     createInputField() {
         this.time.delayedCall(300, () => {  // Delay to ensure it appears after all boxes
-            let promptText = this.add.text(200, 300, '', { font: '20px Courier', fill: '#ffffff' });
+            let promptText = this.add.text(200, 320, '', { font: '20px Courier', fill: '#ffffff' });
             this.typewriterText('Enter the solution here:', promptText, 50).then(() => {
-                let inputText = this.add.text(200, 340, '', { font: '20px Courier', fill: '#00ff00', backgroundColor: '#000000' });
+                let inputText = this.add.text(200, 340, '', { font: '20px Courier', fill: '#00ff00', backgroundColor: '#3eb489' });
                 let cursor = this.add.rectangle(inputText.x + inputText.width + 2, inputText.y + 5, 2, inputText.height - 10, 0xffffff).setOrigin(0);
                 this.time.addEvent({
                     delay: 530,
@@ -306,12 +307,16 @@ class PuzzleScene2 extends Phaser.Scene {
     }
 
     create() {
-        this.introText = this.add.text(200, 50, '', { font: '28px Courier', fill: '#ffffff' });
+        this.cameras.main.setBackgroundColor('#FFFFFF');
+
+        this.add.image(660, 300, 'colortest').setScale(0.5);
+
+
+        this.introText = this.add.text(580, 30, '', { font: '28px Courier', fill: '#000000', fontStyle: 'boldest'});
         this.typewriterText("Puzzle 2:", this.introText, 50).then(() => {
             this.createInputField();
         });
 
-        this.add.image(480, 250, 'colortest').setScale(0.3);
 
         this.input.keyboard.on('keydown-ESC', () => {
             this.scene.start('MainScene');
@@ -337,9 +342,9 @@ class PuzzleScene2 extends Phaser.Scene {
     }    
 
     createInputField() { // Delay to ensure it appears after all boxes
-            let promptText = this.add.text(200, 430, '', { font: '20px Courier', fill: '#ffffff' });
+            let promptText = this.add.text(200, 550, '', { font: '20px Courier', fill: '#000000' });
             this.typewriterText('Enter the solution here:', promptText, 50).then(() => {
-                let inputText = this.add.text(200, 450, '', { font: '20px Courier', fill: '#00ff00', backgroundColor: '#000000' });
+                let inputText = this.add.text(200, 570, '', { font: '20px Courier', fill: '#00ff00', backgroundColor: '#FFFFFF' });
                 let cursor = this.add.rectangle(inputText.x + inputText.width + 2, inputText.y + 5, 2, inputText.height - 10, 0xffffff).setOrigin(0);
                 this.time.addEvent({
                     delay: 530,
