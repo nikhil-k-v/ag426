@@ -28,29 +28,33 @@ class MainScene extends Phaser.Scene {
         this.load.image('ma', 'm-paper.png');
         this.load.image('folderLocked', 'lock.png');
         this.load.image('carShadow', 'miataShadow.png');
+        this.load.image('background', 'background.png');
+
     }
 
     create() {
 
-        this.cameras.main.setBackgroundColor('#3eb489');
+                
+        this.bg = this.physics.add.staticGroup();
+        let background = this.bg.create(300, 200, 'background').setScale(0.6);
+
+        this.cameras.main.setBackgroundColor('#8afcb1');
         this.car = this.physics.add.sprite(0, 0, 'car').setScale(0.3).setDepth(1);
         this.carShadow = this.physics.add.sprite(-5, -5, 'carShadow').setScale(0.3).setDepth(0);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-    
+
         
         // Folders setup
         this.folders = this.physics.add.staticGroup();
-        let folder1 = this.folders.create(300, 200, 'folder').setScale(0.2);
+        let folder1 = this.folders.create(300, 500, 'folder').setScale(0.2);
         folder1.sceneKey = 'PuzzleScene1';
-        let folder2 = this.folders.create(500, 400, 'folderLocked').setScale(0.2);
+        let folder2 = this.folders.create(300, -120, 'folderLocked').setScale(0.2);
         folder2.sceneKey = 'PuzzleScene2';
-        let folder3 = this.folders.create(700, 300, 'folderLocked').setScale(0.2);
+        let folder3 = this.folders.create(-60, 200, 'folderLocked').setScale(0.2);
         folder3.sceneKey = 'PuzzleScene3';
-        let folder4 = this.folders.create(900, 400, 'folderLocked').setScale(0.2);
+        let folder4 = this.folders.create(660, 200, 'folderLocked').setScale(0.2);
         folder4.sceneKey = 'PuzzleScene4';
-
-
 
         // Overlap events
         this.physics.add.overlap(this.car, this.folders, this.onReachFolder, null, this);
@@ -60,21 +64,19 @@ class MainScene extends Phaser.Scene {
 
         this.cameras.main.startFollow(this.car, true, 0.05, 0.05);
         this.cameras.main.setZoom(1);
-
-                
-
         
-        
+        // Check puzzle completion status
         if (this.sys.game.global.puzzle4completed) {
-            folder4.setTexture('m');
+            folder4.setTexture('r');
+            folder3.setTexture('folder');
         } else if (this.sys.game.global.puzzle3completed) {
             folder3.setTexture('o');
-            folder4.setTexture('folder');
+            folder2.setTexture('folder');
         } else if (this.sys.game.global.puzzle2completed) {
-            folder2.setTexture('r');
-            folder3.setTexture('folder');
+            folder2.setTexture('p');
+            folder1.setTexture('folder');
         } else if (this.sys.game.global.puzzle1Completed) {
-            folder1.setTexture('p');
+            folder1.setTexture('m');
             folder2.setTexture('folder');
         }
     
@@ -135,12 +137,16 @@ class MainScene extends Phaser.Scene {
     }
     
     onReachFolder(car, folder) {
+        if (folder.texture.key === 'folderLocked') {
+            return;
+        }
+
         if (!this.folderText) {
             this.currentFolder = folder;
             this.currentSceneKey = folder.sceneKey;  // Save the scene key associated with the folder
             let textComponents = this.createTypewriterText(
                 'Press SPACE to Solve Puzzle',
-                folder.x - folder.width * folder.scaleX / 2,
+                folder.x - folder.width * folder.scaleX / 2 - 100,
                 folder.y - folder.height * folder.scaleY / 2 - 20,
                 { fill: '#000' }
             );
