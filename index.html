@@ -20,12 +20,16 @@
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background-color: #8afcb1; /* Assuming you want a black canvas background */
+        background-color: #000000; /* Assuming you want a black canvas background */
     }
     canvas {
         display: block;
-        width: 95vw; /* Takes up most of the viewport width */
-        height: 95vh; /* Takes up most of the viewport height */
+        margin: auto;
+        width: 80vw !important; /* Takes up most of the viewport width */
+        height: auto !important; /* Takes up most of the viewport height */
+        /* border: 1px solid #000000; Just to show the canvas area */
+        border-radius: 50px !important;
+        box-shadow: 0 0 10px #FFFFFF; /* Just to show the canvas area */
     }
 </style>
 
