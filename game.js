@@ -48,7 +48,7 @@ class MainScene extends Phaser.Scene {
         let background = this.bg.create(300, 200, 'background').setScale(1.1).setDepth(-2);
 
         this.cameras.main.setBackgroundColor('#88fdb1');
-        this.car = this.physics.add.sprite(0, 0, 'car').setScale(0.3).setDepth(2);
+        this.car = this.physics.add.sprite(-500, -500, 'car').setScale(0.3).setDepth(2);
         this.carShadow = this.physics.add.sprite(-5, -5, 'carShadow').setScale(0.3).setDepth(1).setAlpha(0.5);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
