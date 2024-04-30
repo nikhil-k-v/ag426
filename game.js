@@ -60,9 +60,9 @@ class MainScene extends Phaser.Scene {
         folder1.sceneKey = 'Inter1';
         let folder2 = this.folders.create(300, -120, 'folderLocked').setScale(0.2);
         folder2.sceneKey = 'Inter2';
-        let folder3 = this.folders.create(-60, 200, 'folder').setScale(0.2);
-        folder3.sceneKey = 'PuzzleScene3';
-        let folder4 = this.folders.create(660, 200, 'folderLocked').setScale(0.2);
+        let folder3 = this.folders.create(660, 200, 'folderLocked').setScale(0.2);
+        folder3.sceneKey = 'Inter3';
+        let folder4 = this.folders.create(-60, 200, 'folderLocked').setScale(0.2);
         folder4.sceneKey = 'Inter4';
 
         // Overlap events
@@ -79,8 +79,9 @@ class MainScene extends Phaser.Scene {
             folder4.setTexture('r');
             folder3.setTexture('folder');
         } else if (this.registry.get('puzzle3Completed')) {
+            folder1.setTexture('m');
+            folder2.setTexture('p');
             folder3.setTexture('o');
-            folder2.setTexture('folder');
         } else if (this.registry.get('puzzle2Completed')) {
             folder1.setTexture('m');
             folder2.setTexture('p');
@@ -863,53 +864,75 @@ class PuzzleScene3 extends Phaser.Scene {
     constructor() {
         super({ key: 'PuzzleScene3' });
         this.line = null;
-        this.cursor = null;
-
         this.isDragging = false;
         this.lastTile = null;
         this.currentWord = [];
-        this.validWords = ['OVERDUE'];  // Add more valid words as needed
+        this.validWords = [
+            "OVERBAKE", "STREAKED", "OVERDUE", "AVERTED", "BREVETS", "BRAVEST", "PERDUES", "STRAKED",
+            "OVERED", "EARTHS", "EVERTS", "AVERTS", "BREVES", "BREVET", "BRAKED", "BRAKES", "BRAVED", "BRAVES",
+            "BARKED", "BARDES", "BAREST", "PEAKED", "PERKED", "PERDUE", "VERTEX", "REAVED", "REAVES", "REVEST",
+            "REVETS", "TRAVES", "DRAKES", "DEKARE", "STREAK", "STRAKE", "STEREO", "OVERT", "OPERA", "OPTED",
+            "EARED", "EARTH", "EAVED", "EAVES", "EVERT", "AVERT", "BREAK", "BREVE", "BRAKE", "BRAVO", "BRAVE",
+            "BAKER", "BAKED", "BAKES", "BARDE", "BARED", "BARES", "PEART", "PERDU", "PERES", "VERTS", "REAVE",
+            "REVET", "RAKED", "RAKES", "RAVED", "RAVES", "REDUX", "KARTS", "TRAVE", "EXTRA", "DRAKE", "DRAVE",
+            "DREST", "DUETS", "STREP", "STERE", "SEVER", "SERVO", "SERVE", "OVER", "OPTS", "EAVE", "EVER", "EVES",
+            "ARES", "ARTS", "ARVO", "AVER", "AVES", "BRAE", "BRED", "BAKE", "BARE", "BARK", "BARD", "PEAK", "PEAR",
+            "PERK", "PERE", "PERT", "PERV", "VERA", "VERB", "VERT", "VEXT", "VEST", "VETS", "REPO", "RAKE", "RAVE",
+            "RESH", "REST", "RETS", "KART", "KBAR", "KERB", "TREK", "ETHS", "DRAB", "DREK", "DUES", "DUET", "DEVA",
+            "DERE", "SERE", "SERA", "SEXT"
+        ];  // Valid words
         this.validWordsFound = [];
-        // Fixed letters grid including the word "OVERDUE" starting from the first row first column going down
+        this.cursor = null;  // Cursor for current word display
         this.fixedLetters = [
-            ['O', 'E', 'T', 'Y'],
-            ['V', 'V', 'R', 'K'],
-            ['E', 'S', 'E', 'D'],
-            ['R', 'W', 'U', 'X'],
-            ['D', 'L', 'Q', 'C'],
-            ['U', 'I', 'J', 'E'],
-            ['E', 'F', 'G', 'H']  // Extra row can be ignored, included for completeness
+            ['O', 'E', 'A', 'B'],
+            ['P', 'V', 'R', 'K'],
+            ['H', 'T', 'E', 'D'],
+            ['M', 'S', 'X', 'U'] // Extra row can be ignored, included for completeness
         ];
+
+        this.typingInProgress = false;
+        this.typeQueue = [];
+
+        this.score = 0;  // Initialize score
+        this.scoreText = null;  // For displaying the score on screen
+
+        this.timer = 60;  // Start the timer at 60 seconds
+        this.timerText = null;  // Text object for displaying the timer
+        this.targetScore = 19000;  // Set the target score
+
+
     }
 
     create() {
-        // In your create method
         this.cameras.main.setBackgroundColor('#1a1a1a');  // Dark background
 
-        // Adjust the text style for tiles and word displays
-        let textStyle = { font: '24px Courier', fill: '#33ff33' };
-        this.currentWordText = this.add.text(10, 550, '', textStyle);
-        this.validWordsText = this.add.text(500, 20, 'Valid Words:\n', Object.assign({}, textStyle, { wordWrap: { width: 280, useAdvancedWrap: true }}));
+        this.startTimer();  // Start the timer
 
-
-        this.line = this.add.graphics({ lineStyle: { width: 4, color: 0x0000ff } });
+        this.line = this.add.graphics({ lineStyle: { width: 4, color: 0x00ff00 } });
+        this.currentWordText = this.add.text(400, 580, '', { font: '24px Courier', fill: '#33ff33' });
+        this.validWordsText = this.add.text(800, 180, '', { font: '24px Courier', fill: '#33ff33' });
+        
+        this.updateScoreDisplay();  // Initialize score display 
+        // Start typing out the valid words list
     
+
         const gridSize = 4;
         const tileSpacing = 100;
-        const startX = 100;
-        const startY = 100;
+        const startX = 400;
+        const startY = 180;
         let tiles = [];
 
         for (let i = 0; i < gridSize; i++) {
             for (let j = 0; j < gridSize; j++) {
-                this.time.delayedCall((i * gridSize + j) * 100, () => {  // Adjust delay to control speed
+                this.time.delayedCall((i * gridSize + j) * 100, () => {
                     let x = startX + j * tileSpacing;
                     let y = startY + i * tileSpacing;
                     let tile = this.add.text(x, y, this.fixedLetters[i][j], { font: '24px Courier', fill: '#33ff33' });
-                    tile.setInteractive();
+                    tile.setInteractive(new Phaser.Geom.Rectangle(-20, -20, tile.width + 40, tile.height + 40), Phaser.Geom.Rectangle.Contains);
                     tile.setData('used', false);
                     tile.setData('row', i);
                     tile.setData('col', j);
+                    tiles.push(tile);
                     this.input.setDraggable(tile);
                 });
             }
@@ -917,12 +940,15 @@ class PuzzleScene3 extends Phaser.Scene {
         
 
         this.setEventHandlers(tiles);
+        this.input.keyboard.on('keydown-ESC', () => {
+            this.scene.start('MainScene');
+        });
     }
 
     setEventHandlers(tiles) {
         this.input.on('pointerdown', (pointer, gameObject) => {
-            if (gameObject.length > 0) {
-                this.isDragging = true; // Start dragging
+            if (gameObject.length > 0 && !gameObject[0].getData('used')) {
+                this.isDragging = true;
                 this.currentWord.push(gameObject[0]);
                 this.lastTile = gameObject[0];
                 gameObject[0].setData('used', true);
@@ -933,7 +959,7 @@ class PuzzleScene3 extends Phaser.Scene {
         this.input.on('pointermove', (pointer, gameObject) => {
             if (this.isDragging && gameObject.length > 0) {
                 let tile = gameObject[0];
-                if (this.isAdjacent(tile) && !tile.getData('used')) {
+                if (this.isAdjacent(tile) && !tile.getData('used') && this.lastTile !== tile) {
                     this.currentWord.push(tile);
                     this.drawLineBetweenTiles(this.lastTile, tile);
                     this.lastTile = tile;
@@ -945,27 +971,105 @@ class PuzzleScene3 extends Phaser.Scene {
 
         this.input.on('pointerup', () => {
             this.isDragging = false;
-            this.checkWord(this.currentWord.map(tile => tile.text).join(''));
+            if (this.currentWord.length > 0) {
+                this.checkWord(this.currentWord.map(tile => tile.text).join(''));
+            }
             this.currentWord = [];
             this.line.clear();
             tiles.forEach(tile => {
                 tile.setData('used', false);
                 tile.setStyle({ backgroundColor: '' });
             });
-            this.currentWordText.setText('Current Word: ');
-            this.updateBlinkingCursor(this.currentWordText);  // Update cursor position after clearing
+            this.currentWordText.setText('');
+            this.updateBlinkingCursor(this.currentWordText);  // Reset cursor position
         });
-        
     }
 
-    updateCurrentWordText() {
-        this.currentWordText.setText(this.currentWord.map(tile => tile.text).join(''));
-        this.updateBlinkingCursor(this.currentWordText);  // Ensure the cursor position updates
+    updateScore(word) {
+        let wordScore = word.length * 100;
+        if (word === 'OVERDUE') {
+            wordScore += 10000;
+        }
+        this.score += wordScore;
+        this.updateScoreDisplay();
+        if (this.score >= this.targetScore) {
+            console.log('Target Score Reached: ' + this.targetScore);
+            this.registry.set('puzzle3Completed', true);
+        }
     }
     
 
+    updateScoreDisplay() {
+        if (!this.scoreText) {
+            this.scoreText = this.add.text(400, 700, 'Score: 0', { font: '24px Courier', fill: '#33ff33' });  // Position and style accordingly
+        }
+        this.scoreText.setText('Score: ' + this.score + " / 19000");
+    }
+
+    startTimer() {
+        this.timerText = this.add.text(400, 100, 'Time: ' + this.timer, { font: '24px Courier', fill: '#33ff33' });  // Adjust position and style
+        this.time.addEvent({
+            delay: 1000,
+            callback: () => {
+                this.timer--;
+                this.timerText.setText('Time: ' + this.timer);
+                if (this.timer <= 0) {
+                    this.timer = 60;  // Reset the timer
+                    this.score = 0;   // Reset the score
+                    this.validWordsFound = [];  // Clear the list of valid words
+                    this.updateScoreDisplay();
+                    this.validWordsText.setText(' ');  // Reset the valid words display
+                }
+                if (this.score >= this.targetScore) {
+                    console.log('Target Score Reached: ' + this.targetScore);
+                }
+            },
+            repeat: -1
+        });
+    }
+    
+    
+    
+
+    updateCurrentWordText() {
+        if (this.currentWord.length > 0) {
+            // Retrieve the last tile's letter from the current word
+            let lastLetter = this.currentWord[this.currentWord.length - 1].text;
+            
+            // Append the new letter only if it's not already displayed
+            if (!this.currentWordText.text.endsWith(lastLetter)) {
+                this.animateText(this.currentWordText, lastLetter);
+            }
+        } else {
+            // Clear the text if no current word
+            this.currentWordText.setText('');
+        }
+        this.updateBlinkingCursor(this.currentWordText);
+    }
+    
+    animateText(textElement, newText) {
+        let fullText = textElement.text + newText;
+        textElement.setText(fullText); // Set the text with the new letter
+        // Optionally, you could animate this new letter appearing
+        // For now, it just updates the text, but you can extend this to animate
+    }
+
+    updateBlinkingCursor(textElement) {
+        if (!this.cursor) {
+            this.cursor = this.add.text(textElement.x + textElement.width + 2, textElement.y, '|', { font: '24px Courier', fill: '#33ff33' });
+            this.time.addEvent({
+                callback: () => this.cursor.visible = !this.cursor.visible,
+                loop: true,
+                delay: 530
+            });
+        } else {
+            this.cursor.x = textElement.x + textElement.width + 2;
+        }
+        this.cursor.visible = true;  // Ensure cursor is visible
+    }
+
     isAdjacent(tile) {
-        if (!this.lastTile) return true; // If there's no last tile, any tile is valid (first selection)
+        if (!this.lastTile) return true; // First tile is always valid
         const lastRow = this.lastTile.getData('row');
         const lastCol = this.lastTile.getData('col');
         const tileRow = tile.getData('row');
@@ -983,51 +1087,47 @@ class PuzzleScene3 extends Phaser.Scene {
     checkWord(word) {
         if (this.validWords.includes(word) && !this.validWordsFound.includes(word)) {
             this.validWordsFound.push(word);
-            let formattedWords = 'Valid Words:\n' + this.validWordsFound.join('\n');
-            this.typewriterText(this.validWordsText, formattedWords, false);  // No cursor for valid words
+            this.typewriterText(this.validWordsText, '\n' + word, false);
+            this.updateScore(word);  // Update score based on the word found
         }
     }
     
+    
+    
 
-    typewriterText(target, text, withCursor = false) {
-        target.setText('');  // Clear existing text
+    typewriterText(target, newText, withCursor = false) {
+        if (this.typingInProgress) {
+            this.typeQueue.push({ target, newText, withCursor });
+            return;
+        }
+        this.typingInProgress = true;
+    
+        let startIndex = target.text.length;
+        let fullText = target.text + newText;
         let i = 0;
         this.time.addEvent({
             callback: () => {
-                target.text += text[i++];
-                if (i === text.length && withCursor) {
-                    this.addBlinkingCursor(target);
+                target.setText(fullText.substring(0, startIndex + i + 1));
+                i++;
+                if (i === newText.length) {
+                    if (withCursor) {
+                        this.addBlinkingCursor(target);
+                    }
+                    this.typingInProgress = false;
+                    if (this.typeQueue.length > 0) {
+                        const next = this.typeQueue.shift();
+                        this.typewriterText(next.target, next.newText, next.withCursor);
+                    }
                 }
             },
-            repeat: text.length - 1,
-            delay: 100  // Adjust delay for speed of typing
+            repeat: newText.length,
+            delay: 100
         });
     }
     
-
-// Ensure this property is initialized in your constructor
-
-    addBlinkingCursor(textElement) {
-        if (!this.cursor) {
-            this.cursor = this.add.text(textElement.x + textElement.width + 5, textElement.y, '|', { font: '24px Courier', fill: '#33ff33' });
-            this.time.addEvent({
-                callback: () => this.cursor.visible = !this.cursor.visible,
-                loop: true,
-                delay: 530  // Blink speed
-            });
-        }
-    }
-
-    updateBlinkingCursor(textElement) {
-        if (this.cursor) {
-            this.cursor.x = textElement.x + textElement.width + 2;  // Adjust cursor position dynamically
-            this.cursor.visible = true;  // Ensure it's visible after a reset
-        }
-    }
-    
-    
     
 }
+
 
 
 
