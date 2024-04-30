@@ -60,8 +60,8 @@ class MainScene extends Phaser.Scene {
         folder1.sceneKey = 'Inter1';
         let folder2 = this.folders.create(300, -120, 'folderLocked').setScale(0.2);
         folder2.sceneKey = 'Inter2';
-        let folder3 = this.folders.create(-60, 200, 'folderLocked').setScale(0.2);
-        folder3.sceneKey = 'Inter3';
+        let folder3 = this.folders.create(-60, 200, 'folder').setScale(0.2);
+        folder3.sceneKey = 'PuzzleScene3';
         let folder4 = this.folders.create(660, 200, 'folderLocked').setScale(0.2);
         folder4.sceneKey = 'Inter4';
 
@@ -858,31 +858,182 @@ class PuzzleScene2 extends Phaser.Scene {
 
 }
 
+
 class PuzzleScene3 extends Phaser.Scene {
     constructor() {
         super({ key: 'PuzzleScene3' });
+        this.line = null;
+        this.cursor = null;
+
+        this.isDragging = false;
+        this.lastTile = null;
+        this.currentWord = [];
+        this.validWords = ['OVERDUE'];  // Add more valid words as needed
+        this.validWordsFound = [];
+        // Fixed letters grid including the word "OVERDUE" starting from the first row first column going down
+        this.fixedLetters = [
+            ['O', 'E', 'T', 'Y'],
+            ['V', 'V', 'R', 'K'],
+            ['E', 'S', 'E', 'D'],
+            ['R', 'W', 'U', 'X'],
+            ['D', 'L', 'Q', 'C'],
+            ['U', 'I', 'J', 'E'],
+            ['E', 'F', 'G', 'H']  // Extra row can be ignored, included for completeness
+        ];
     }
 
     create() {
-        this.createTypewriterText("Solve Puzzle 3 Here", 400, 300);
-        this.input.keyboard.on('keydown-ESC', () => {
-            this.scene.start('MainScene');
-        });
+        // In your create method
+        this.cameras.main.setBackgroundColor('#1a1a1a');  // Dark background
+
+        // Adjust the text style for tiles and word displays
+        let textStyle = { font: '24px Courier', fill: '#33ff33' };
+        this.currentWordText = this.add.text(10, 550, '', textStyle);
+        this.validWordsText = this.add.text(500, 20, 'Valid Words:\n', Object.assign({}, textStyle, { wordWrap: { width: 280, useAdvancedWrap: true }}));
+
+
+        this.line = this.add.graphics({ lineStyle: { width: 4, color: 0x0000ff } });
+    
+        const gridSize = 4;
+        const tileSpacing = 100;
+        const startX = 100;
+        const startY = 100;
+        let tiles = [];
+
+        for (let i = 0; i < gridSize; i++) {
+            for (let j = 0; j < gridSize; j++) {
+                this.time.delayedCall((i * gridSize + j) * 100, () => {  // Adjust delay to control speed
+                    let x = startX + j * tileSpacing;
+                    let y = startY + i * tileSpacing;
+                    let tile = this.add.text(x, y, this.fixedLetters[i][j], { font: '24px Courier', fill: '#33ff33' });
+                    tile.setInteractive();
+                    tile.setData('used', false);
+                    tile.setData('row', i);
+                    tile.setData('col', j);
+                    this.input.setDraggable(tile);
+                });
+            }
+        }
+        
+
+        this.setEventHandlers(tiles);
     }
 
-    createTypewriterText(text, x, y) {
-        let displayText = this.add.text(x, y, '', { font: '16px Courier', fill: '#fff' });
-        let index = 0;
-        this.time.addEvent({
-            delay: 100, // ms between characters
-            repeat: text.length - 1,
-            callback: () => {
-                displayText.setText(text.substring(0, index + 1));
-                index++;
+    setEventHandlers(tiles) {
+        this.input.on('pointerdown', (pointer, gameObject) => {
+            if (gameObject.length > 0) {
+                this.isDragging = true; // Start dragging
+                this.currentWord.push(gameObject[0]);
+                this.lastTile = gameObject[0];
+                gameObject[0].setData('used', true);
+                this.updateCurrentWordText();
             }
         });
+
+        this.input.on('pointermove', (pointer, gameObject) => {
+            if (this.isDragging && gameObject.length > 0) {
+                let tile = gameObject[0];
+                if (this.isAdjacent(tile) && !tile.getData('used')) {
+                    this.currentWord.push(tile);
+                    this.drawLineBetweenTiles(this.lastTile, tile);
+                    this.lastTile = tile;
+                    tile.setData('used', true);
+                    this.updateCurrentWordText();
+                }
+            }
+        });
+
+        this.input.on('pointerup', () => {
+            this.isDragging = false;
+            this.checkWord(this.currentWord.map(tile => tile.text).join(''));
+            this.currentWord = [];
+            this.line.clear();
+            tiles.forEach(tile => {
+                tile.setData('used', false);
+                tile.setStyle({ backgroundColor: '' });
+            });
+            this.currentWordText.setText('Current Word: ');
+            this.updateBlinkingCursor(this.currentWordText);  // Update cursor position after clearing
+        });
+        
     }
+
+    updateCurrentWordText() {
+        this.currentWordText.setText(this.currentWord.map(tile => tile.text).join(''));
+        this.updateBlinkingCursor(this.currentWordText);  // Ensure the cursor position updates
+    }
+    
+
+    isAdjacent(tile) {
+        if (!this.lastTile) return true; // If there's no last tile, any tile is valid (first selection)
+        const lastRow = this.lastTile.getData('row');
+        const lastCol = this.lastTile.getData('col');
+        const tileRow = tile.getData('row');
+        const tileCol = tile.getData('col');
+        return Math.abs(lastRow - tileRow) <= 1 && Math.abs(lastCol - tileCol) <= 1;
+    }
+
+    drawLineBetweenTiles(tile1, tile2) {
+        this.line.beginPath();
+        this.line.moveTo(tile1.x + tile1.width / 2, tile1.y + tile1.height / 2);
+        this.line.lineTo(tile2.x + tile2.width / 2, tile2.y + tile2.height / 2);
+        this.line.strokePath();
+    }
+
+    checkWord(word) {
+        if (this.validWords.includes(word) && !this.validWordsFound.includes(word)) {
+            this.validWordsFound.push(word);
+            let formattedWords = 'Valid Words:\n' + this.validWordsFound.join('\n');
+            this.typewriterText(this.validWordsText, formattedWords, false);  // No cursor for valid words
+        }
+    }
+    
+
+    typewriterText(target, text, withCursor = false) {
+        target.setText('');  // Clear existing text
+        let i = 0;
+        this.time.addEvent({
+            callback: () => {
+                target.text += text[i++];
+                if (i === text.length && withCursor) {
+                    this.addBlinkingCursor(target);
+                }
+            },
+            repeat: text.length - 1,
+            delay: 100  // Adjust delay for speed of typing
+        });
+    }
+    
+
+// Ensure this property is initialized in your constructor
+
+    addBlinkingCursor(textElement) {
+        if (!this.cursor) {
+            this.cursor = this.add.text(textElement.x + textElement.width + 5, textElement.y, '|', { font: '24px Courier', fill: '#33ff33' });
+            this.time.addEvent({
+                callback: () => this.cursor.visible = !this.cursor.visible,
+                loop: true,
+                delay: 530  // Blink speed
+            });
+        }
+    }
+
+    updateBlinkingCursor(textElement) {
+        if (this.cursor) {
+            this.cursor.x = textElement.x + textElement.width + 2;  // Adjust cursor position dynamically
+            this.cursor.visible = true;  // Ensure it's visible after a reset
+        }
+    }
+    
+    
+    
 }
+
+
+
+
+// Call this in pointerup event
+
 
 class PuzzleScene4 extends Phaser.Scene {
     constructor() {
