@@ -615,7 +615,7 @@ class Inter3 extends Phaser.Scene {
             this.currentFolder = folder;
             this.currentSceneKey = folder.sceneKey;  // Save the scene key associated with the folder
             let textComponents = this.createTypewriterText(
-                'Press SPACE to Solve Puzzle',
+                'When you are failing: WHAT WOULD TRAVIS SAY?',
                 folder.x - folder.width * folder.scaleX / 2 - 100,
                 folder.y - folder.height * folder.scaleY / 2 - 20,
                 { fill: '#000' }
