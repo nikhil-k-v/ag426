@@ -8,12 +8,14 @@ class BootScene extends Phaser.Scene {
             puzzle1Completed: false, 
             puzzle2completed: false, 
             puzzle3completed: false, 
-            puzzle4completed: false
+            puzzle4completed: false,
+            puzzle6completed: false
         };
 
         this.registry.set('puzzle1Completed', false);
         this.registry.set('puzzle2Completed', false);
         this.registry.set('puzzle3Completed', false);
+        this.registry.set('puzzle6Completed', false);
         this.registry.set('puzzle4Completed', false);
     }
 
@@ -48,7 +50,12 @@ class MainScene extends Phaser.Scene {
         let background = this.bg.create(300, 200, 'background').setScale(1.1).setDepth(-2);
 
         this.cameras.main.setBackgroundColor('#88fdb1');
-        this.car = this.physics.add.sprite(-500, -500, 'car').setScale(0.3).setDepth(2);
+        if(this.registry.get('puzzle4Completed')) {
+            this.car = this.physics.add.sprite(300, 200, 'car').setScale(0.3).setDepth(2);
+        } else {
+            this.car = this.physics.add.sprite(-500, -500, 'car').setScale(0.3).setDepth(2);
+
+        }
         this.carShadow = this.physics.add.sprite(-5, -5, 'carShadow').setScale(0.3).setDepth(1).setAlpha(0.5);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
@@ -76,12 +83,15 @@ class MainScene extends Phaser.Scene {
         
         // Check puzzle completion status
         if (this.registry.get('puzzle4Completed')) {
+            folder1.setTexture('m');
+            folder2.setTexture('p');
+            folder3.setTexture('o');
             folder4.setTexture('r');
-            folder3.setTexture('folder');
         } else if (this.registry.get('puzzle3Completed')) {
             folder1.setTexture('m');
             folder2.setTexture('p');
             folder3.setTexture('o');
+            folder4.setTexture('folder');
         } else if (this.registry.get('puzzle2Completed')) {
             folder1.setTexture('m');
             folder2.setTexture('p');
@@ -659,6 +669,185 @@ class Inter3 extends Phaser.Scene {
     }
 }
 
+class Inter4 extends Phaser.Scene {
+    constructor() {
+        super({ key: 'Inter4' });
+    }
+
+    preload() {
+        this.load.image('car', 'miata.png');
+        this.load.image('folder', 'folder.png');
+        this.load.image('p', 'p-paper.png');
+        this.load.image('r', 'r-paper.png');
+        this.load.image('o', 'o-paper.png');
+        this.load.image('m', 'm-paper.png');
+        this.load.image('folderLocked', 'lock.png');
+        this.load.image('carShadow', 'miataShadow.png');
+        this.load.image('background4', 'bg4.png');
+    }
+
+    create() { 
+        this.bg = this.physics.add.staticGroup();
+        let background = this.bg.create(300, 200, 'background4').setScale(0.9).setDepth(-2);
+
+        this.cameras.main.setBackgroundColor('#e2fede');
+        this.car = this.physics.add.sprite(300, -180, 'car').setScale(0.3).setDepth(2);
+        this.carShadow = this.physics.add.sprite(-5, -5, 'carShadow').setScale(0.3).setDepth(1).setAlpha(0.5);
+        this.car.setAngle(90);
+        this.carShadow.setAngle(90);
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+        
+        // Folders setup
+        this.folders = this.physics.add.staticGroup();
+        let folder1 = this.folders.create(300, 200, 'folder').setScale(0.2);
+        folder1.sceneKey = 'PuzzleScene4';
+        let folder2 = this.folders.create(500, 300, 'folder').setScale(0.2);
+        folder2.sceneKey = 'PuzzleScene5';
+        let folder3 = this.folders.create(700, 400, 'folderLocked').setScale(0.2);
+        folder3.sceneKey = 'PuzzleScene6';
+
+        if(this.registry.get('puzzle6Completed')) {
+            folder3.setTexture('folder');
+        }
+
+        // Overlap events
+        this.physics.add.overlap(this.car, this.folders, this.onReachFolder, null, this);
+    
+        // To handle text removal when moving away
+        this.currentFolder = null;  // Track the current folder
+
+        this.cameras.main.startFollow(this.car, true, 0.05, 0.05);
+        this.cameras.main.setZoom(1);
+    
+    }
+
+    update() {
+        // Handle car movement and background scrolling
+        if (this.cursors.left.isDown) {
+            this.car.setAngle(180).setVelocityX(-360);
+            this.carShadow.setAngle(180);
+        } else if (this.cursors.right.isDown) {
+            this.car.setAngle(0).setVelocityX(360);
+            this.carShadow.setAngle(0);
+        } else {
+            this.car.setVelocityX(0);
+        }
+        
+        if (this.cursors.up.isDown) {
+            this.car.setAngle(-90).setVelocityY(-360);
+            this.carShadow.setAngle(-90);
+            if (this.cursors.right.isDown && this.cursors.up.isDown) {
+                this.car.setAngle(-45);
+                this.carShadow.setAngle(-45);
+            }
+            if (this.cursors.left.isDown && this.cursors.up.isDown) {
+                this.car.setAngle(-135);
+                this.carShadow.setAngle(-135);
+            }
+        } else if (this.cursors.down.isDown) {
+            this.car.setAngle(90).setVelocityY(360);
+            this.carShadow.setAngle(90);
+            if (this.cursors.down.isDown && this.cursors.left.isDown) {
+                this.car.setAngle(135);
+                this.carShadow.setAngle(135);
+            }
+            if (this.cursors.down.isDown && this.cursors.right.isDown) {
+                this.car.setAngle(45);
+                this.carShadow.setAngle(45);
+            }
+        } else {
+            this.car.setVelocityY(0);
+        }
+
+        this.carShadow.x = this.car.x - 7;
+        this.carShadow.y = this.car.y - 7;
+
+        if (this.currentFolder && Phaser.Math.Distance.Between(this.car.x, this.car.y, this.currentFolder.x, this.currentFolder.y) > 100) {
+            this.cleanupText();
+        }
+    
+        if (Phaser.Input.Keyboard.JustDown(this.spaceBar)) {
+            if (this.folderText && this.currentFolder) {
+                this.scene.start(this.currentSceneKey);  // Start the scene associated with the current folder
+                this.cleanupText();
+            }
+        }
+        
+    }
+    
+    onReachFolder(car, folder) {
+        if (folder.texture.key === 'folderLocked') {
+            return;
+        }
+
+        if (!this.folderText) {
+            this.currentFolder = folder;
+            this.currentSceneKey = folder.sceneKey;  // Save the scene key associated with the folder
+            if (folder.sceneKey === 'PuzzleScene4') {
+                let textComponents = this.createTypewriterText(
+                    'I',
+                    folder.x - folder.width * folder.scaleX / 2 + 12,
+                    folder.y - folder.height * folder.scaleY / 2 - 20,
+                    { fill: '#000' }
+                );
+                this.folderText = textComponents;
+            } else if (folder.sceneKey === 'PuzzleScene5') {
+                let textComponents = this.createTypewriterText(
+                    'LOVE',
+                    folder.x - folder.width * folder.scaleX / 2 + 2,
+                    folder.y - folder.height * folder.scaleY / 2 - 20,
+                    { fill: '#000' }
+                );
+                this.folderText = textComponents;
+            } else {
+                let textComponents = this.createTypewriterText(
+                    'YOU',
+                    folder.x - folder.width * folder.scaleX / 2 + 6,
+                    folder.y - folder.height * folder.scaleY / 2 - 20,
+                    { fill: '#000' }
+                );
+                this.folderText = textComponents;
+            }
+        }
+    }
+    
+    cleanupText() {
+        if (this.folderText) {
+            if (this.folderText.typewriterEvent) {
+                this.folderText.typewriterEvent.remove(false);
+            }
+            this.folderText.textObject.destroy();
+            this.folderText = null;
+        }
+    }
+
+    createTypewriterText(text, x, y, style) {
+        let textObject = this.add.text(x, y, '', style);
+        let index = 0;
+        let typewriterEvent = this.time.addEvent({
+            delay: 50,
+            repeat: text.length - 1,
+            callback: () => {
+                textObject.setText(text.substring(0, index + 1));
+                index++;
+                if (index === text.length) {
+                    textObject.setInteractive().on('pointerdown', () => {
+                        if (this.currentFolder) {
+                            let sceneKey = this.currentFolder.texture.key;
+                            this.scene.start(sceneKey);
+                            this.cleanupText();
+                        }
+                    });
+                }
+            },
+            callbackScope: this
+        });
+        return { textObject, typewriterEvent };
+    }
+}
+
 class PuzzleScene1 extends Phaser.Scene {
     constructor() {
         super({ key: 'PuzzleScene1' });
@@ -898,7 +1087,7 @@ class PuzzleScene3 extends Phaser.Scene {
 
         this.timer = 60;  // Start the timer at 60 seconds
         this.timerText = null;  // Text object for displaying the timer
-        this.targetScore = 19000;  // Set the target score
+        this.targetScore = 18000;  // Set the target score
 
 
     }
@@ -988,12 +1177,12 @@ class PuzzleScene3 extends Phaser.Scene {
     updateScore(word) {
         let wordScore = word.length * 100;
         if (word === 'OVERDUE') {
-            wordScore += 10000;
+            wordScore += 17000;
         }
         this.score += wordScore;
         this.updateScoreDisplay();
         if (this.score >= this.targetScore) {
-            console.log('Target Score Reached: ' + this.targetScore);
+            this.scoreText.setText('Puzzle Complete! Press [ESC] to exit.');
             this.registry.set('puzzle3Completed', true);
         }
     }
@@ -1003,7 +1192,7 @@ class PuzzleScene3 extends Phaser.Scene {
         if (!this.scoreText) {
             this.scoreText = this.add.text(400, 700, 'Score: 0', { font: '24px Courier', fill: '#33ff33' });  // Position and style accordingly
         }
-        this.scoreText.setText('Score: ' + this.score + " / 19000");
+        this.scoreText.setText('Score: ' + this.score + " / 18000");
     }
 
     startTimer() {
@@ -1129,37 +1318,607 @@ class PuzzleScene3 extends Phaser.Scene {
 }
 
 
-
-
-
-// Call this in pointerup event
-
-
 class PuzzleScene4 extends Phaser.Scene {
     constructor() {
         super({ key: 'PuzzleScene4' });
+        this.board = [];
+        this.currentPiece = null;
+        this.dropTime = 0;
+        this.dropInterval = 500;
+        this.isGameOver = false;
+        this.revealGrid = [];
+        this.revealState = [];
+        this.revealGroup = null;
+        this.rowsCleared = 0;
+        this.gridRevealed = false;
+    }
+
+    preload() {
+        this.load.image('block', 'block.png'); // Use the correct path to your block image
     }
 
     create() {
-        this.createTypewriterText("Solve Puzzle 4 Here", 400, 300);
+        this.cameras.main.setBackgroundColor('#000000');
+        this.createBoard();
+        this.createRevealGrid();
+        this.spawnPiece();
+
+        this.input.keyboard.on('keydown-LEFT', () => this.movePiece(-1));
+        this.input.keyboard.on('keydown-RIGHT', () => this.movePiece(1));
+        this.input.keyboard.on('keydown-DOWN', () => this.dropPiece());
+        this.input.keyboard.on('keydown-UP', () => this.rotatePiece());
+
+        this.registry.set('clue1Unlocked', false);
+        this.registry.set('clue2Unlocked', false);
+        this.registry.set('clue3Unlocked', false);
+        this.registry.set('clue4Unlocked', false);
+        this.registry.set('clue5Unlocked', false);
+        this.registry.set('clue6Unlocked', false);
+
         this.input.keyboard.on('keydown-ESC', () => {
-            this.scene.start('MainScene');
+            this.scene.start('Inter4');
         });
     }
 
-    createTypewriterText(text, x, y) {
-        let displayText = this.add.text(x, y, '', { font: '16px Courier', fill: '#fff' });
-        let index = 0;
-        this.time.addEvent({
-            delay: 100, // ms between characters
-            repeat: text.length - 1,
-            callback: () => {
-                displayText.setText(text.substring(0, index + 1));
-                index++;
+    update(time) {
+        if (this.isGameOver) {
+            this.add.text(530, 400, 'Game Over', { font: '32px Courier', fill: '#ff0000' }).setOrigin(0.5);
+            return;
+        }
+
+        if (time > this.dropTime) {
+            this.dropPiece();
+            this.dropTime = time + this.dropInterval;
+        }
+
+        this.renderPiece();
+    }
+
+    createBoard() {
+        const rows = 20;
+        const cols = 12;
+        for (let r = 0; r < rows; r++) {
+            this.board[r] = [];
+            for (let c = 0; c < cols; c++) {
+                this.board[r][c] = null;
             }
+        }
+    }
+
+    createRevealGrid() {
+        this.revealGrid = [
+            [0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0],
+            [0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
+            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+        ]; // Heart-shaped reveal grid
+
+        this.revealState = Array(10).fill().map(() => Array(12).fill(1)); // Start with all red blocks
+        this.revealGroup = this.add.group();
+        this.renderRevealGrid();
+    }
+
+    renderRevealGrid() {
+        this.revealGroup.clear(true, true);
+        const offsetX = 830; // Adjust offset to position the reveal grid next to the Tetris grid
+        const offsetY = 404;  // Adjust offset to position both grids in the center of the screen
+
+        for (let r = 0; r < this.revealState.length; r++) {
+            for (let c = 0; c < this.revealState[r].length; c++) {
+                if (this.revealState[r][c] === 1) {
+                    let block = this.add.image(offsetX + c * 32, offsetY + r * 32, 'block').setOrigin(0).setScale(0.1).setTint(0xff0000); // Red tint
+                    this.revealGroup.add(block);
+                }
+            }
+        }
+    }
+
+    revealRow() {
+        if (this.rowsCleared < this.revealGrid.length) {
+            const rowIndex = this.revealGrid.length - 1 - this.rowsCleared;
+            for (let c = 0; c < this.revealGrid[rowIndex].length; c++) {
+                if (this.revealGrid[rowIndex][c] === 0) {
+                    let block = this.add.image(1230 + c * 32, 484 + rowIndex * 32, 'block').setOrigin(0).setScale(0.1).setTint(0x000000); // Black tint
+                    this.revealGroup.add(block);
+                } else {
+                    this.revealState[rowIndex][c] = 0;
+                }
+            }
+            this.renderRevealGrid(); // Re-render the grid to update the state
+
+            if ((this.rowsCleared + 1) % 2 === 0) { // If it's an even row (2nd, 4th, etc.)
+                this.unlockClue((this.rowsCleared + 1) / 2);
+            }
+
+            this.rowsCleared++;
+        }
+    }
+
+    unlockClue(clueNumber) {
+        this.registry.set(`clue${clueNumber}Unlocked`, true);
+    }
+
+    spawnPiece() {
+        const shapes = [
+            [[1, 1, 1, 1]], // I
+            [[1, 1, 1], [0, 1, 0]], // T
+            [[1, 1], [1, 1]], // O
+            [[0, 1, 1], [1, 1, 0]], // S
+            [[1, 1, 0], [0, 1, 1]], // Z
+            [[1, 1, 1], [1, 0, 0]], // L
+            [[1, 1, 1], [0, 0, 1]], // J
+        ];
+        const shape = Phaser.Utils.Array.GetRandom(shapes);
+        this.currentPiece = { shape, row: 0, col: Math.floor((12 - shape[0].length) / 2) };
+        this.renderPiece();
+        
+        if (!this.isValidMove(this.currentPiece.shape, this.currentPiece.row, this.currentPiece.col)) {
+            this.isGameOver = true;
+        }
+    }
+
+    movePiece(dir) {
+        if (!this.isGameOver) {
+            const newCol = this.currentPiece.col + dir;
+            if (this.isValidMove(this.currentPiece.shape, this.currentPiece.row, newCol)) {
+                this.currentPiece.col = newCol;
+                this.renderPiece();
+            }
+        }
+    }
+
+    rotatePiece() {
+        if (!this.isGameOver) {
+            const newShape = this.rotate(this.currentPiece.shape);
+            if (this.isValidMove(newShape, this.currentPiece.row, this.currentPiece.col)) {
+                this.currentPiece.shape = newShape;
+                this.renderPiece();
+            }
+        }
+    }
+
+    rotate(shape) {
+        return shape[0].map((val, index) => shape.map(row => row[index]).reverse());
+    }
+
+    dropPiece() {
+        if (!this.isGameOver) {
+            const newRow = this.currentPiece.row + 1;
+            if (this.isValidMove(this.currentPiece.shape, newRow, this.currentPiece.col)) {
+                this.currentPiece.row = newRow;
+                this.renderPiece();
+            } else {
+                this.mergePiece();
+                this.clearLines();
+                this.spawnPiece();
+            }
+        }
+    }
+
+    isValidMove(shape, row, col) {
+        for (let r = 0; r < shape.length; r++) {
+            for (let c = 0; c < shape[r].length; c++) {
+                if (shape[r][c] &&
+                    (row + r >= this.board.length || 
+                    col + c < 0 || 
+                    col + c >= this.board[0].length || 
+                    this.board[row + r][col + c] !== null)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    mergePiece() {
+        this.currentPiece.shape.forEach((row, r) => {
+            row.forEach((cell, c) => {
+                if (cell) {
+                    const sprite = this.add.image(430 + (this.currentPiece.col + c) * 32, 100 + (this.currentPiece.row + r) * 32, 'block').setOrigin(0).setScale(0.1);
+                    this.board[this.currentPiece.row + r][this.currentPiece.col + c] = { sprite };
+                }
+            });
+        });
+    }
+
+    clearLines() {
+        const rowsToClear = [];
+
+        // Identify full rows
+        for (let r = 0; r < this.board.length; r++) {
+            if (this.board[r].every(cell => cell !== null)) {
+                rowsToClear.push(r);
+            }
+        }
+
+        // Clear full rows
+        rowsToClear.forEach(row => {
+            this.board[row].forEach(cell => cell.sprite.destroy());
+            this.board[row] = Array(12).fill(null);
+        });
+
+        // Move down the rows above the cleared rows
+        for (let r = rowsToClear[0] - 1; r >= 0; r--) {
+            for (let c = 0; c < this.board[r].length; c++) {
+                if (this.board[r][c] !== null) {
+                    let cell = this.board[r][c];
+                    let newRow = r;
+
+                    while (newRow < this.board.length - 1 && this.board[newRow + 1][c] === null) {
+                        this.board[newRow][c] = null;
+                        this.board[newRow + 1][c] = cell;
+                        cell.sprite.y += 32;
+                        newRow++;
+                    }
+                }
+            }
+        }
+
+        // Reveal rows on the second grid
+        rowsToClear.forEach(() => {
+            if (!this.gridRevealed) {
+                this.revealRow();
+            }
+        });
+
+        if (this.rowsCleared >= this.revealGrid.length) {
+            this.gridRevealed = true;
+        }
+    }
+
+    renderPiece() {
+        if (this.pieceGroup) {
+            this.pieceGroup.clear(true, true);
+        } else {
+            this.pieceGroup = this.add.group();
+        }
+
+        const offsetX = 430;
+        const offsetY = 100;
+
+        this.currentPiece.shape.forEach((row, r) => {
+            row.forEach((cell, c) => {
+                if (cell) {
+                    let block = this.add.image(offsetX + (this.currentPiece.col + c) * 32, offsetY + (this.currentPiece.row + r) * 32, 'block').setOrigin(0).setScale(0.1);
+                    this.pieceGroup.add(block);
+                }
+            });
         });
     }
 }
+
+
+class PuzzleScene5 extends Phaser.Scene {
+    constructor() {
+        super({ key: 'PuzzleScene5' });
+        this.crosswordGrid = [
+            [null, null, 'L', null, null, null, 'R', null],
+            [null, null, 'A', 'M', 'O', 'R', 'E', null],
+            ['K', null, null, 'I', null, null, 'D', null],
+            ['O', null, null, 'C', null, null, null, null],
+            ['A', null, null, 'K', null, null, null, null],
+            ['L', 'E', 'V', 'E', 'L', 'S', null, null],
+            ['A', null, null, 'Y', null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+        ]; // Initial grid with some letters
+        this.clueNumbers = [
+            [null, null, 1, null, null, null, 2, null],
+            [null, null, 3, 6, null, null, null, null],
+            [4, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [5, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null],
+        ]; // Initial clue numbers
+        this.userInput = Array(8).fill().map(() => Array(8).fill(null)); // User input grid
+        this.clues = [
+            "1. xx xx Land",
+            "2. favorite type of panda",
+            "3. location of our first date",
+            "4. your (original) favorite animal?",
+            "5. video sent on 11/06/2024",
+            "6. you = minnie, me ="
+        ]; // Clues text
+    }
+
+    preload() {
+        // Preload any assets if necessary
+    }
+
+    create() {
+        this.cameras.main.setBackgroundColor('#FFFFFF');
+        this.createGrid();
+        this.createClueNumbers();
+        this.displayClues();
+        this.input.keyboard.on('keydown-ESC', () => {
+            this.scene.start('Inter4');
+        });
+    }
+
+    createGrid() {
+        const offsetX = 400;
+        const offsetY = 80;
+        const cellSize = 50;
+
+        this.gridGroup = this.add.group();
+
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const x = offsetX + col * cellSize;
+                const y = offsetY + row * cellSize;
+
+                if (this.crosswordGrid[row][col] !== null) {
+                    const cell = this.add.rectangle(x, y, cellSize, cellSize, 0xFFFFFF).setStrokeStyle(2, 0x000000);
+                    cell.setInteractive();
+                    cell.on('pointerdown', () => this.selectCell(row, col, cell));
+
+                    this.gridGroup.add(cell);
+
+                    const letter = this.add.text(x - cellSize / 2 + 10, y - cellSize / 2 + 10, '', { font: '32px Courier', fill: '#000000' });
+                    this.gridGroup.add(letter);
+                    cell.letter = letter;
+                }
+            }
+        }
+    }
+
+    createClueNumbers() {
+        const offsetX = 400;
+        const offsetY = 80;
+        const cellSize = 50;
+
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                if (this.clueNumbers[row][col] !== null) {
+                    const x = offsetX + col * cellSize;
+                    const y = offsetY + row * cellSize;
+                    const clueNumber = this.add.text(x - cellSize / 2 + 2, y - cellSize / 2 + 2, this.clueNumbers[row][col], { font: '16px Courier', fill: '#000000' });
+                    this.checkClueUnlock(clueNumber, row, col);
+                }
+            }
+        }
+    }
+
+    checkClueUnlock(clueNumber, row, col) {
+        const clueIndex = this.clueNumbers[row][col] - 1;
+        if (this.registry.get(`clue${clueIndex + 1}Unlocked`)) {
+            clueNumber.setVisible(true);
+            this.add.text(850, 100 + clueIndex * 50, this.clues[clueIndex], { font: '16px Courier', fill: '#000000' });
+        } else {
+            clueNumber.setVisible(false);
+        }
+    }
+
+    selectCell(row, col, cell) {
+        if (this.selectedCell) {
+            this.selectedCell.setFillStyle(0xFFFFFF);
+        }
+        this.selectedCell = cell;
+        this.selectedRow = row;
+        this.selectedCol = col;
+        cell.setFillStyle(0xD3D3D3);
+
+        this.input.keyboard.off('keydown');
+        this.input.keyboard.on('keydown', (event) => this.handleKey(event, row, col));
+    }
+
+    handleKey(event, row, col) {
+        const key = event.key.toUpperCase();
+        if (key.length === 1 && key.match(/[A-Z]/)) {
+            if (this.selectedCell.letter) {
+                this.selectedCell.letter.setText(key);
+            } else {
+                const x = this.selectedCell.x - 20;
+                const y = this.selectedCell.y - 20;
+                const letter = this.add.text(x, y, key, { font: '32px Courier', fill: '#000000' });
+                this.selectedCell.letter = letter;
+                this.gridGroup.add(letter);
+            }
+            this.userInput[row][col] = key;
+            this.checkPuzzleCompletion();
+        }
+    }
+
+    checkPuzzleCompletion() {
+        let isComplete = true;
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                if (this.crosswordGrid[row][col] !== null && this.crosswordGrid[row][col] !== this.userInput[row][col]) {
+                    isComplete = false;
+                    break;
+                }
+            }
+        }
+        if (isComplete) {
+            this.add.text(400, 50, 'Puzzle Completed', { font: '32px Courier', fill: '#00FF00' }).setOrigin(0.5);
+            this.registry.set('puzzle6Completed', true);
+        }
+    }
+
+    displayClues() {
+        for (let i = 1; i <= 6; i++) {
+            if (this.registry.get(`clue${i}Unlocked`)) {
+                this.add.text(850, 100 + (i - 1) * 50, this.clues[i - 1], { font: '16px Courier', fill: '#000000' });
+            }
+        }
+    }
+
+    createTypewriterText(text, x, y, style) {
+        return new Promise((resolve) => {
+            let textObject = this.add.text(x, y, '', style).setOrigin(0.5);
+            let index = 0;
+            this.time.addEvent({
+                delay: 50,
+                repeat: text.length - 1,
+                callback: () => {
+                    textObject.setText(text.substring(0, index + 1));
+                    index++;
+                    if (index === text.length) {
+                        resolve(textObject);
+                    }
+                }
+            });
+        });
+    }
+}
+
+
+
+
+class PuzzleScene6 extends Phaser.Scene {
+    constructor() {
+        super({ key: 'PuzzleScene6' });
+        this.prompts = [
+            { text: "do you want to play the game of 4?", answer: "yes", nextText: "lets play !!!!" },
+            { text: "what is 2 plus 2?", answer: "4", nextText: "good" },
+            { text: "what hue is the sky?", answer: "4", nextText: "yes!" },
+            { text: "i love you", answer: "1432", nextText: ":D i love you alisha!" },
+            { text: "oh no!", answer: "1334", nextText: "whatever..." },
+            { text: "if you understand then say 'yes'", answer: "3", nextText: "alisha!" },
+            { text: "we have our entire lives ahead of us!!!", answer: "3", nextText: "im really excited to spend mine with you" },
+            { text: "i love you!", answer: "3", nextText: "!!!" },
+            { text: "!!!!!!!!!!!!!!!!!!!!!!!", answer: "3", nextText: "one more question!" }
+        ];
+        this.currentPromptIndex = 0;
+        this.inputField = null;
+        this.cursor = null;
+        this.textObject = null;
+        this.isNextTextDisplayed = false;
+    }
+
+    preload() {
+        // Preload any assets if necessary
+    }
+
+    create() {
+        this.cameras.main.setBackgroundColor('#FFFFFF');
+        this.displayPrompt();
+        this.input.keyboard.on('keydown-ESC', () => {
+            this.scene.start('MainScene');
+        });
+        this.setupKeyboardInput();
+    }
+
+    displayPrompt() {
+        const prompt = this.prompts[this.currentPromptIndex];
+        if (this.textObject) {
+            this.textObject.destroy();
+        }
+        if (this.inputField) {
+            this.inputField.destroy();
+            this.cursor.destroy();
+        }
+        this.isNextTextDisplayed = false;
+        this.createTypewriterText(prompt.text, 400, 300, { font: '32px Courier', fill: '#000000' }).then(() => {
+            this.createInputField();
+        });
+    }
+
+    createTypewriterText(text, x, y, style) {
+        return new Promise((resolve) => {
+            this.textObject = this.add.text(x, y, '', style).setOrigin(0.5);
+            let index = 0;
+            this.time.addEvent({
+                delay: 50,
+                repeat: text.length - 1,
+                callback: () => {
+                    this.textObject.setText(text.substring(0, index + 1));
+                    index++;
+                    if (index === text.length) {
+                        resolve(this.textObject);
+                    }
+                }
+            });
+        });
+    }
+
+    createInputField() {
+        this.inputField = this.add.text(400, 400, '', { font: '32px Courier', fill: '#000000' }).setOrigin(0.5).setInteractive();
+        this.cursor = this.add.rectangle(this.inputField.x + this.inputField.width / 2 + 2, this.inputField.y, 2, this.inputField.height, 0x000000).setOrigin(0.5);
+
+        this.time.addEvent({
+            delay: 530,
+            callback: () => { this.cursor.visible = !this.cursor.visible; },
+            loop: true
+        });
+    }
+
+    setupKeyboardInput() {
+        this.input.keyboard.on('keydown', (event) => {
+            if (this.inputField) {
+                if (event.keyCode === 8 && this.inputField.text.length > 0) {  // Backspace key
+                    this.inputField.text = this.inputField.text.substr(0, this.inputField.text.length - 1);
+                } else if (event.keyCode === 13) {  // Enter key
+                    if (this.isNextTextDisplayed) {
+                        this.goToNextPrompt();
+                    } else {
+                        this.validateInput(this.inputField.text);
+                    }
+                } else if (event.key.match(/^[a-zA-Z0-9]$/)) {  // Allow alphanumeric input
+                    this.inputField.text += event.key;
+                }
+                this.cursor.x = this.inputField.x + this.inputField.width / 2 + 2;  // Update cursor position
+            }
+        });
+    }
+
+    validateInput(input) {
+        const prompt = this.prompts[this.currentPromptIndex];
+        if (input.toLowerCase() === prompt.answer.toLowerCase()) {
+            this.displayNextText(prompt.nextText);
+            this.isNextTextDisplayed = true;
+        } else {
+            this.shakeInput();
+        }
+    }
+
+    displayNextText(nextText) {
+        this.textObject.setText('');
+        this.createTypewriterText(nextText, 400, 300, { font: '32px Courier', fill: '#000000' }).then(() => {
+            this.inputField.setText('');
+        });
+    }
+
+    shakeInput() {
+        this.tweens.add({
+            targets: this.inputField,
+            x: this.inputField.x + 10,
+            yoyo: true,
+            repeat: 5,
+            duration: 50,
+        });
+    }
+
+    goToNextPrompt() {
+        this.currentPromptIndex++;
+        if (this.currentPromptIndex < this.prompts.length) {
+            this.displayPrompt();
+        } else {
+            this.registry.set('puzzle4Completed', true);
+            this.scene.start('MainScene');
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const config = {
     type: Phaser.AUTO,
@@ -1176,6 +1935,6 @@ const config = {
             gravity: { y: 0 }
         }
     },
-    scene: [BootScene, MainScene, Inter1, PuzzleScene1, Inter2, PuzzleScene2, Inter3, PuzzleScene3, PuzzleScene4]
+    scene: [BootScene, MainScene, Inter1, PuzzleScene1, Inter2, PuzzleScene2, Inter3, PuzzleScene3, Inter4, PuzzleScene4, PuzzleScene5, PuzzleScene6]
 };
 let game = new Phaser.Game(config);
