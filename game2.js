@@ -14,7 +14,7 @@ class BootScene extends Phaser.Scene {
 
         this.registry.set('puzzle1Completed', false);
         this.registry.set('puzzle2Completed', false);
-        this.registry.set('puzzle3Completed', false);
+        this.registry.set('puzzle3Completed', true);
         this.registry.set('puzzle6Completed', false);
         this.registry.set('puzzle4Completed', false);
     }
@@ -1184,9 +1184,6 @@ class PuzzleScene3 extends Phaser.Scene {
         if (this.score >= this.targetScore) {
             this.scoreText.setText('Puzzle Complete! Press [ESC] to exit.');
             this.registry.set('puzzle3Completed', true);
-            this.input.keyboard.on('keydown-ESC', () => {
-                window.location.href = 'index2.html';
-            });
         }
     }
     
