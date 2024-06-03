@@ -14,7 +14,7 @@ class BootScene extends Phaser.Scene {
 
         this.registry.set('puzzle1Completed', false);
         this.registry.set('puzzle2Completed', false);
-        this.registry.set('puzzle3Completed', false);
+        this.registry.set('puzzle3Completed', true);
         this.registry.set('puzzle6Completed', false);
         this.registry.set('puzzle4Completed', false);
     }
@@ -1177,7 +1177,7 @@ class PuzzleScene3 extends Phaser.Scene {
     updateScore(word) {
         let wordScore = word.length * 100;
         if (word === 'OVERDUE') {
-            wordScore += 17000;
+            wordScore += 11000;
         }
         this.score += wordScore;
         this.updateScoreDisplay();
@@ -1816,7 +1816,7 @@ class PuzzleScene6 extends Phaser.Scene {
             this.cursor.destroy();
         }
         this.isNextTextDisplayed = false;
-        this.createTypewriterText(prompt.text, 400, 300, { font: '32px Courier', fill: '#000000' }).then(() => {
+        this.createTypewriterText(prompt.text, 800, 300, { font: '32px Courier', fill: '#000000' }).then(() => {
             this.createInputField();
         });
     }
@@ -1840,7 +1840,7 @@ class PuzzleScene6 extends Phaser.Scene {
     }
 
     createInputField() {
-        this.inputField = this.add.text(400, 400, '', { font: '32px Courier', fill: '#000000' }).setOrigin(0.5).setInteractive();
+        this.inputField = this.add.text(800, 400, '', { font: '32px Courier', fill: '#000000' }).setOrigin(0.5).setInteractive();
         this.cursor = this.add.rectangle(this.inputField.x + this.inputField.width / 2 + 2, this.inputField.y, 2, this.inputField.height, 0x000000).setOrigin(0.5);
 
         this.time.addEvent({
@@ -1881,7 +1881,7 @@ class PuzzleScene6 extends Phaser.Scene {
 
     displayNextText(nextText) {
         this.textObject.setText('');
-        this.createTypewriterText(nextText, 400, 300, { font: '32px Courier', fill: '#000000' }).then(() => {
+        this.createTypewriterText(nextText, 800, 300, { font: '32px Courier', fill: '#000000' }).then(() => {
             this.inputField.setText('');
         });
     }
