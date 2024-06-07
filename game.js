@@ -1048,7 +1048,6 @@ class PuzzleScene2 extends Phaser.Scene {
 
 }
 
-
 class PuzzleScene3 extends Phaser.Scene {
     constructor() {
         super({ key: 'PuzzleScene3' });
@@ -1319,7 +1318,6 @@ class PuzzleScene3 extends Phaser.Scene {
     
     
 }
-
 
 class PuzzleScene4 extends Phaser.Scene {
     constructor() {
@@ -1596,7 +1594,6 @@ class PuzzleScene4 extends Phaser.Scene {
     }
 }
 
-
 class PuzzleScene5 extends Phaser.Scene {
     constructor() {
         super({ key: 'PuzzleScene5' });
@@ -1772,9 +1769,6 @@ class PuzzleScene5 extends Phaser.Scene {
     }
 }
 
-
-
-
 class PuzzleScene6 extends Phaser.Scene {
     constructor() {
         super({ key: 'PuzzleScene6' });
@@ -1909,19 +1903,6 @@ class PuzzleScene6 extends Phaser.Scene {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 const config = {
     type: Phaser.AUTO,

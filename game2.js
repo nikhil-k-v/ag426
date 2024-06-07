@@ -12,8 +12,8 @@ class BootScene extends Phaser.Scene {
             puzzle6completed: false
         };
 
-        this.registry.set('puzzle1Completed', false);
-        this.registry.set('puzzle2Completed', false);
+        this.registry.set('puzzle1Completed', true);
+        this.registry.set('puzzle2Completed', true);
         this.registry.set('puzzle3Completed', true);
         this.registry.set('puzzle6Completed', false);
         this.registry.set('puzzle4Completed', false);
@@ -1324,7 +1324,7 @@ class PuzzleScene4 extends Phaser.Scene {
         this.board = [];
         this.currentPiece = null;
         this.dropTime = 0;
-        this.dropInterval = 500;
+        this.dropInterval = 250;
         this.isGameOver = false;
         this.revealGrid = [];
         this.revealState = [];
@@ -1341,24 +1341,30 @@ class PuzzleScene4 extends Phaser.Scene {
         this.cameras.main.setBackgroundColor('#000000');
         this.createBoard();
         this.createRevealGrid();
+        this.pieceGroup = this.add.group(); // Ensure pieceGroup is initialized
         this.spawnPiece();
-
+        
         this.input.keyboard.on('keydown-LEFT', () => this.movePiece(-1));
         this.input.keyboard.on('keydown-RIGHT', () => this.movePiece(1));
         this.input.keyboard.on('keydown-DOWN', () => this.dropPiece());
         this.input.keyboard.on('keydown-UP', () => this.rotatePiece());
-
+    
+        // Reset registry values for clues and rows cleared
+        this.registry.set('rowsCleared', 0);
         this.registry.set('clue1Unlocked', false);
         this.registry.set('clue2Unlocked', false);
         this.registry.set('clue3Unlocked', false);
         this.registry.set('clue4Unlocked', false);
         this.registry.set('clue5Unlocked', false);
         this.registry.set('clue6Unlocked', false);
-
+    
+        this.rowsCleared = 0; // Reset local rowsCleared variable
+    
         this.input.keyboard.on('keydown-ESC', () => {
             this.scene.start('Inter4');
         });
     }
+    
 
     update(time) {
         if (this.isGameOver) {
@@ -1749,6 +1755,7 @@ class PuzzleScene5 extends Phaser.Scene {
             }
         }
     }
+    
 
     createTypewriterText(text, x, y, style) {
         return new Promise((resolve) => {
